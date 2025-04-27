@@ -1,5 +1,4 @@
-﻿// ЛР3: Варіант 9. Автор: Михайло Зайченко
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
