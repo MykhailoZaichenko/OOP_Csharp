@@ -234,6 +234,8 @@ public class TestCollections
     private Dictionary<Organization, Publisher> orgDict;
     private Dictionary<string, Publisher> stringDict;
 
+    public List<Organization> GetOrganizations() => orgList;
+
     public static Publisher GeneratePublisher(int i)
     {
         return new Publisher($"Publisher{i}", $"Address{i}", DateTime.Today, 2000 + i);
@@ -257,57 +259,78 @@ public class TestCollections
         }
     }
 
-    public void MeasureSearchTimes()
+    public void MeasureSearchTimesFor(Organization org)
     {
-        var items = new[]
-        {
-            orgList[0],
-            orgList[orgList.Count / 2],
-            orgList[^1],
-            new Organization("NotExist", "Nowhere", 1999)
-        };
+        string orgStr = org.ToString();
+        var sw = new Stopwatch();
 
-        foreach (var org in items)
-        {
-            string orgStr = org.ToString();
-            var sw = new Stopwatch();
+        sw.Start(); bool inList = orgList.Contains(org); sw.Stop();
+        Console.WriteLine($"List<Organization> — {(inList ? "found" : "not found")}: {sw.ElapsedTicks} ticks");
 
-            sw.Start(); orgList.Contains(org); sw.Stop();
-            Console.WriteLine($"List<Organization>: {sw.ElapsedTicks} ticks");
+        sw.Restart(); bool inStrList = stringList.Contains(orgStr); sw.Stop();
+        Console.WriteLine($"List<string> — {(inStrList ? "found" : "not found")}: {sw.ElapsedTicks} ticks");
 
-            sw.Restart(); stringList.Contains(orgStr); sw.Stop();
-            Console.WriteLine($"List<string>: {sw.ElapsedTicks} ticks");
+        sw.Restart(); bool inDictKey = orgDict.ContainsKey(org); sw.Stop();
+        Console.WriteLine($"Dictionary<Organization, Publisher> (by key) — {(inDictKey ? "found" : "not found")}: {sw.ElapsedTicks} ticks");
 
-            sw.Restart(); orgDict.ContainsKey(org); sw.Stop();
-            Console.WriteLine($"Dictionary<Org,Pub> by key: {sw.ElapsedTicks} ticks");
+        sw.Restart(); bool inStrDictKey = stringDict.ContainsKey(orgStr); sw.Stop();
+        Console.WriteLine($"Dictionary<string, Publisher> (by key) — {(inStrDictKey ? "found" : "not found")}: {sw.ElapsedTicks} ticks");
 
-            sw.Restart(); stringDict.ContainsKey(orgStr); sw.Stop();
-            Console.WriteLine($"Dictionary<string,Pub> by key: {sw.ElapsedTicks} ticks");
-
-            sw.Restart(); orgDict.ContainsValue(new Publisher(org.Name, org.Address, DateTime.Today, org.RegistrationYear)); sw.Stop();
-            Console.WriteLine($"Dictionary<Org,Pub> by value: {sw.ElapsedTicks} ticks\n");
-        }
+        sw.Restart(); bool inDictValue = orgDict.ContainsValue(new Publisher(org.Name, org.Address, DateTime.Today, org.RegistrationYear)); sw.Stop();
+        Console.WriteLine($"Dictionary<Organization, Publisher> (by value) — {(inDictValue ? "found" : "not found")}: {sw.ElapsedTicks} ticks");
     }
 }
+
 
 class Program
 {
     static void Main()
     {
+        Console.WriteLine("=== Creating PublisherCollection and adding elements ===\n");
         var collection = new PublisherCollection();
+
         collection.AddDefaults();
         collection.AddPublishers(
             new Publisher("Gamma", "Odesa", DateTime.Today, 2005),
             new Publisher("Delta", "Kharkiv", DateTime.Today, 2008)
         );
 
-        Console.WriteLine("Original Collection:\n" + collection);
-        collection.SortByName(); Console.WriteLine("\nSorted by Name:\n" + collection);
-        collection.SortByYear(); Console.WriteLine("\nSorted by Year:\n" + collection);
-        collection.SortByAddress(); Console.WriteLine("\nSorted by Address:\n" + collection);
+        // PRINTING COLLECTION AFTER ADDING ELEMENTS
+        Console.WriteLine("Original PublisherCollection:\n");
+        Console.WriteLine(collection.ToString());
 
-        Console.WriteLine("\n=== Testing Collections ===");
+        // SORTING
+        Console.WriteLine("\n=== Sorted by Name ===");
+        collection.SortByName();
+        Console.WriteLine(collection.ToShortString());
+
+        Console.WriteLine("\n=== Sorted by Registration Year ===");
+        collection.SortByYear();
+        Console.WriteLine(collection.ToShortString());
+
+        Console.WriteLine("\n=== Sorted by Address ===");
+        collection.SortByAddress();
+        Console.WriteLine(collection.ToShortString());
+
+        // TESTING COLLECTION PERFORMANCE
+        Console.WriteLine("\n=== Collection Performance Testing ===\n");
         var test = new TestCollections(1000);
-        test.MeasureSearchTimes();
+
+        var orgList = test.GetOrganizations();
+        var testItems = new[]
+        {
+            new { Label = "First element", Org = orgList[0] },
+            new { Label = "Middle element", Org = orgList[orgList.Count / 2] },
+            new { Label = "Last element", Org = orgList[^1] },
+            new { Label = "Non-existing element", Org = new Organization("NotExist", "Nowhere", 1999) }
+        };
+
+        foreach (var item in testItems)
+        {
+            Console.WriteLine($"🔍 Searching: {item.Label}");
+            test.MeasureSearchTimesFor(item.Org);
+            Console.WriteLine();
+        }
     }
 }
+
