@@ -321,11 +321,14 @@ class Program
             new Publisher("Delta", "Kharkiv", DateTime.Today, 2008)
         );
 
-        // PRINTING COLLECTION AFTER ADDING ELEMENTS
+        // 1. Створити об'єкт типу PublisherCollection. Додати до колекції кілька різних елементів типу Publisher з різними значеннями полів і вивести об'єкт PublisherCollection.
         Console.WriteLine("Original PublisherCollection:\n");
         Console.WriteLine(collection.ToString());
 
-        // SORTING
+        // 2. Для створеного об'єкта PublisherCollection викликати методи, які виконують сортування списку List <Publisher> за різними критеріями, і після кожного сортування вивести дані об'єкта. Виконати сортування^
+            // за назвою організації;
+            // за роком реєстрації;
+            // за адресою реєстрації.
         Console.WriteLine("\n=== Sorted by Name ===");
         collection.SortByName();
         Console.WriteLine(collection.ToShortString());
@@ -338,7 +341,7 @@ class Program
         collection.SortByAddress();
         Console.WriteLine(collection.ToShortString());
 
-        // TESTING COLLECTION PERFORMANCE
+        // 3. Створити об'єкт типу TestCollections. Викликати метод для пошуку в колекціях першого, центрального, останнього і елемента, що не входить в колекції. Вивести значення часу пошуку для всіх чотирьох випадків з поясненнями про те, для якої колекції і для якого елементу отримано значення.
         Console.WriteLine("\n=== Collection Performance Testing ===\n");
         var test = new TestCollections(1000);
 
