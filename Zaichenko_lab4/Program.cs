@@ -73,9 +73,9 @@ public class Book : IDateAndCopy
 
 public class Organization : IComparable<Organization>, IComparer<Organization>
 {
-    public string Name { get; set; }
-    public string Address { get; set; }
-    public int RegistrationYear { get; set; }
+    protected string Name;
+    protected string Address;
+    protected int RegistrationYear;
 
     public Organization(string name, string address, int year)
     {
@@ -86,22 +86,48 @@ public class Organization : IComparable<Organization>, IComparer<Organization>
 
     public Organization() : this("DefaultOrg", "DefaultAddress", 2000) { }
 
-    public int CompareTo(Organization other) => this.Name.CompareTo(other?.Name);
-    public int Compare(Organization x, Organization y) => x.RegistrationYear.CompareTo(y.RegistrationYear);
+    public string OrgName { get => this.Name; set => this.Name = value; }
+    public string OrgAddress { get => this.Address; set => this.Address = value; }
 
-    public override string ToString() => $"Organization name: {this.Name}, Address: {this.Address}, Year: {this.RegistrationYear}";
+    public int OrgRegistrationYear
+    {
+        get => this.RegistrationYear;
+        set
+        {
+            if (value > DateTime.Now.Year)
+                throw new ArgumentOutOfRangeException("Year cannot be in the future");
+            this.RegistrationYear = value;
+        }
+    }
 
-    public override bool Equals(object obj) => obj is Organization o && o.Name == this.Name && o.Address == this.Address && o.RegistrationYear == this.RegistrationYear;
-    public override int GetHashCode() => HashCode.Combine(this.Name, this.Address, this.RegistrationYear);
+    public virtual object DeepCopy() => new Organization(this.Name, this.Address, this.RegistrationYear);
+
+    public override bool Equals(object obj)
+    {
+        if (obj is Organization o)
+            return this.Name == o.Name && this.Address == o.Address && this.RegistrationYear == o.RegistrationYear;
+        return false;
+    }
 
     public static bool operator ==(Organization a, Organization b) => Equals(a, b);
     public static bool operator !=(Organization a, Organization b) => !Equals(a, b);
+
+    public override int GetHashCode() => HashCode.Combine(this.Name, this.Address, this.RegistrationYear);
+
+    public override string ToString() => $"Organization name: {this.Name}, Address: {this.Address}, Year: {this.RegistrationYear}";
+
+    // CompareTo method for sorting by name with null check
+    public int CompareTo(Organization other) => this.Name.CompareTo(other?.Name);
+    // CompareTo method for sorting by registration year
+    public int Compare(Organization x, Organization y) => x.RegistrationYear.CompareTo(y.RegistrationYear);
 }
 
+// Helping class for sorting by address
 public class OrganizationAddressComparer : IComparer<Organization>
 {
-    public int Compare(Organization x, Organization y) => x.Address.CompareTo(y.Address);
+    public int Compare(Organization x, Organization y) => x.OrgAddress.CompareTo(y.OrgAddress);
 }
+
 
 public class Publisher : Organization, IDateAndCopy, IEnumerable
 {
@@ -134,8 +160,8 @@ public class Publisher : Organization, IDateAndCopy, IEnumerable
 
     public Organization OrganizationInfo
     {
-        get => new Organization(this.Name, this.Address, this.RegistrationYear);
-        set { this.Name = value.Name; this.Address = value.Address; this.RegistrationYear = value.RegistrationYear; }
+        get => new Organization(this.OrgName, this.OrgAddress, this.OrgRegistrationYear);
+        set { this.OrgName = value.OrgName; this.OrgAddress = value.OrgAddress; this.OrgRegistrationYear = value.OrgRegistrationYear; }
     }
 
     public override string ToString() =>
@@ -211,7 +237,7 @@ public class PublisherCollection
     {
         foreach (var p in pubs)
         {
-            var book = new Book(new Person("Oksana", "Petryk", new DateTime(1995, 3, 3)), $"Book of {p.Name}", DateTime.Today, Size.Pocket);
+            var book = new Book(new Person("Oksana", "Petryk", new DateTime(1995, 3, 3)), $"Book of {p.OrgName}", DateTime.Today, Size.Pocket);
             var employee = new Person("Andrii", "Zaychenko", new DateTime(1993, 4, 4));
             p.AddBooks(book);
             p.AddEmployee(employee);
@@ -251,7 +277,7 @@ public class TestCollections
         for (int i = 0; i < count; i++)
         {
             Publisher pub = GeneratePublisher(i);
-            Organization org = new Organization(pub.Name, pub.Address, pub.RegistrationYear);
+            Organization org = new Organization(pub.OrgName, pub.OrgAddress, pub.OrgRegistrationYear);
             orgList.Add(org);
             stringList.Add(org.ToString());
             orgDict.Add(org, pub);
@@ -276,7 +302,7 @@ public class TestCollections
         sw.Restart(); bool inStrDictKey = stringDict.ContainsKey(orgStr); sw.Stop();
         Console.WriteLine($"Dictionary<string, Publisher> (by key) — {(inStrDictKey ? "found" : "not found")}: {sw.ElapsedTicks} ticks");
 
-        sw.Restart(); bool inDictValue = orgDict.ContainsValue(new Publisher(org.Name, org.Address, DateTime.Today, org.RegistrationYear)); sw.Stop();
+        sw.Restart(); bool inDictValue = orgDict.ContainsValue(new Publisher(org.OrgName, org.OrgAddress, DateTime.Today, org.OrgRegistrationYear)); sw.Stop();
         Console.WriteLine($"Dictionary<Organization, Publisher> (by value) — {(inDictValue ? "found" : "not found")}: {sw.ElapsedTicks} ticks");
     }
 }
@@ -327,7 +353,7 @@ class Program
 
         foreach (var item in testItems)
         {
-            Console.WriteLine($"🔍 Searching: {item.Label}");
+            Console.WriteLine($" Searching: {item.Label}");
             test.MeasureSearchTimesFor(item.Org);
             Console.WriteLine();
         }
