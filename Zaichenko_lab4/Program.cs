@@ -128,7 +128,6 @@ public class OrganizationAddressComparer : IComparer<Organization>
     public int Compare(Organization x, Organization y) => x.OrgAddress.CompareTo(y.OrgAddress);
 }
 
-
 public class Publisher : Organization, IDateAndCopy, IEnumerable
 {
     private DateTime licenseExpiryDate;
@@ -245,8 +244,25 @@ public class PublisherCollection
         }
     }
 
-    public override string ToString() => string.Join("\n", publishers.Select(p => p.ToString()));
-    public string ToShortString() => string.Join("\n", publishers.Select(p => p.ToShortString()));
+    public override string ToString()
+    {
+        string result = "";
+        foreach (var publisher in publishers)
+        {
+            result += publisher.ToString() + "\n";
+        }
+        return result;
+    }
+
+    public string ToShortString()
+    {
+        string result = "";
+        foreach (var publisher in publishers)
+        {
+            result += publisher.ToShortString() + "\n";
+        }
+        return result;
+    }
 
     public void SortByName() => publishers.Sort();
     public void SortByYear() => publishers.Sort(new Organization());
@@ -291,22 +307,23 @@ public class TestCollections
         var sw = new Stopwatch();
 
         sw.Start(); bool inList = orgList.Contains(org); sw.Stop();
-        Console.WriteLine($"List<Organization> — {(inList ? "found" : "not found")}: {sw.ElapsedTicks} ticks");
+        Console.WriteLine($"List<Organization> — {(inList ? "found" : "not found")}: {sw.ElapsedTicks} ticks ({sw.Elapsed.TotalMilliseconds} ms)");
 
         sw.Restart(); bool inStrList = stringList.Contains(orgStr); sw.Stop();
-        Console.WriteLine($"List<string> — {(inStrList ? "found" : "not found")}: {sw.ElapsedTicks} ticks");
+        Console.WriteLine($"List<string> — {(inStrList ? "found" : "not found")}: {sw.ElapsedTicks} ticks ({sw.Elapsed.TotalMilliseconds} ms)");
 
         sw.Restart(); bool inDictKey = orgDict.ContainsKey(org); sw.Stop();
-        Console.WriteLine($"Dictionary<Organization, Publisher> (by key) — {(inDictKey ? "found" : "not found")}: {sw.ElapsedTicks} ticks");
+        Console.WriteLine($"Dictionary<Organization, Publisher> (by key) — {(inDictKey ? "found" : "not found")}: {sw.ElapsedTicks} ticks ({sw.Elapsed.TotalMilliseconds} ms)");
 
         sw.Restart(); bool inStrDictKey = stringDict.ContainsKey(orgStr); sw.Stop();
-        Console.WriteLine($"Dictionary<string, Publisher> (by key) — {(inStrDictKey ? "found" : "not found")}: {sw.ElapsedTicks} ticks");
+        Console.WriteLine($"Dictionary<string, Publisher> (by key) — {(inStrDictKey ? "found" : "not found")}: {sw.ElapsedTicks} ticks ({sw.Elapsed.TotalMilliseconds} ms)");
 
-        sw.Restart(); bool inDictValue = orgDict.ContainsValue(new Publisher(org.OrgName, org.OrgAddress, DateTime.Today, org.OrgRegistrationYear)); sw.Stop();
-        Console.WriteLine($"Dictionary<Organization, Publisher> (by value) — {(inDictValue ? "found" : "not found")}: {sw.ElapsedTicks} ticks");
+        sw.Restart(); bool inDictValue = orgDict.ContainsValue(
+            new Publisher(org.OrgName, org.OrgAddress, DateTime.Today, org.OrgRegistrationYear)); sw.Stop();
+        Console.WriteLine($"Dictionary<Organization, Publisher> (by value) — {(inDictValue ? "found" : "not found")}: {sw.ElapsedTicks} ticks ({sw.Elapsed.TotalMilliseconds} ms)");
     }
-}
 
+}
 
 class Program
 {
